@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useInView, useAnimation } from 'framer-motion';
 import { Download, Mail, Linkedin, Github, Menu, X, FileText, MapPin, Award, GraduationCap } from 'lucide-react';
+import emailjs from '@emailjs/browser'; // EmailJS kütüphanesi eklendi
 
 // --- Animasyonlar ve Hook'lar ---
 const useScrollAnimation = () => {
@@ -40,7 +41,9 @@ const staggerContainer = {
 const App = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  
+  // EmailJS için form referansı
+  const form = useRef();
 
   const navItems = [
     { id: 'home', label: 'Home' },
@@ -66,14 +69,29 @@ const App = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // --- EMAIL GÖNDERME FONKSİYONU ---
+  const sendEmail = (e) => {
+    e.preventDefault(); // Sayfanın yenilenmesini engeller
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData);
-    alert('Mesajınız alındı! (Demo modundasınız, gerçek e-posta gönderilmedi.)');
-    setFormData({ name: '', email: '', message: '' });
+    emailjs
+      .sendForm(
+        'service_dl4wjhd',    // <--- OUTLOOK SERVICE ID
+        'template_her5qkd',   // <--- TEMPLATE ID
+        form.current,
+        {
+          publicKey: 'RlXgVy-dNfpPR8z4y', // <--- PUBLIC KEY
+        }
+      )
+      .then(
+        () => {
+          alert('Mesajınız başarıyla gönderildi! En kısa sürede dönüş yapacağım. 🚀');
+          e.target.reset(); // Formu temizle
+        },
+        (error) => {
+          console.log('FAILED...', error.text);
+          alert('Bir hata oluştu. Lütfen doğrudan mail atın: yusufkozann@outlook.com');
+        }
+      );
   };
 
   useEffect(() => {
@@ -95,7 +113,7 @@ const App = () => {
   }, []);
 
   return (
-    <div className="bg-neutral-950 text-neutrale-100 min-h-screen font-sans selection:bg-amber-500 selection:text-white">
+    <div className="bg-neutral-950 text-neutral-100 min-h-screen font-sans selection:bg-amber-500 selection:text-white">
       <nav className="fixed top-0 w-full bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -214,7 +232,7 @@ const App = () => {
               Electrical & Electronics Engineer | Robotics Researcher
             </motion.h2>
             
-<motion.p 
+            <motion.p 
               className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -253,7 +271,7 @@ const App = () => {
         </div>
       </section>
 
-{/* About Section - GÜNCELLENMİŞ VERSİYON */}
+      {/* About Section */}
       <Section id="about" title="About Me">
         <motion.div variants={fadeInUp} className="max-w-3xl mx-auto text-center">
           <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-8 backdrop-blur-sm shadow-lg shadow-amber-900/5">
@@ -264,11 +282,10 @@ const App = () => {
         </motion.div>
       </Section>
 
-{/* Experience Section - FINAL (CV UYUMLU) */}
+      {/* Experience Section */}
       <Section id="experience" title="Professional Journey">
         <motion.div variants={staggerContainer} className="max-w-4xl mx-auto space-y-6">
           
-          {/* 1. STAJ (Portekiz) */}
           <ExperienceCard
             type="Internship"
             icon={<MapPin size={24} />}
@@ -280,7 +297,6 @@ const App = () => {
             description="Engineered high-fidelity robotic system simulations using C++ and ROS. Optimized mechatronic performance by integrating advanced sensor data fusion algorithms for precise navigation."
           />
 
-          {/* 2. BAŞARI (Robot Craft Birinciliği) */}
           <ExperienceCard
             type="Achievement"
             icon={<Award size={24} />}
@@ -292,7 +308,6 @@ const App = () => {
             description="Secured 1st place among 8 international teams. Led the development of the autonomous navigation stack, conducting rigorous debugging in a Linux-based environment."
           />
 
-          {/* 3. EĞİTİM (Erasmus - Polonya) */}
           <ExperienceCard
             type="Education"
             icon={<GraduationCap size={24} />}
@@ -304,7 +319,6 @@ const App = () => {
             description="Electrical Engineering studies focusing on international engineering standards and advanced automation systems. Gained adaptability in a multicultural technical environment."
           />
 
-          {/* 4. BAŞARI (Yüksek Onur Belgesi) */}
           <ExperienceCard
             type="Achievement"
             icon={<Award size={24} />}
@@ -316,7 +330,6 @@ const App = () => {
             description="Awarded for outstanding academic performance, demonstrating a strong foundation in engineering principles and analytical problem-solving skills early in the academic career."
           />
 
-          {/* 5. EĞİTİM (Lisans - Türkiye) */}
           <ExperienceCard
             type="Education"
             icon={<GraduationCap size={24} />}
@@ -330,10 +343,10 @@ const App = () => {
 
         </motion.div>
       </Section>
-<Section id="projects" title="Key Projects">
+
+      <Section id="projects" title="Key Projects">
         <motion.div variants={staggerContainer} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           
-          {/* Proje 1: Bitirme Projesi */}
           <ProjectCard
             title="Autonomous Multi-Level SLAM"
             tech={["ROS", "C++", "Python", "Lidar"]}
@@ -341,7 +354,6 @@ const App = () => {
             brochurePath="./docs/proje_1.pdf"
           />
 
-          {/* Proje 2: Staj Yarışma Projesi */}
           <ProjectCard
             title="Competitive Autonomous Robotics"
             tech={["ROS 2", "Gazebo", "Sensor Fusion"]}
@@ -349,7 +361,6 @@ const App = () => {
             brochurePath="./docs/proje_2.pdf"
           />
 
-          {/* Proje 3: RF Derin Öğrenme */}
           <ProjectCard
             title="RF Signal Modulation Classifier"
             tech={["TensorFlow", "Python", "CNN"]}
@@ -357,7 +368,6 @@ const App = () => {
             brochurePath="./docs/proje_3.pdf"
           />
 
-          {/* Proje 4: Deprem Sistemi */}
           <ProjectCard
             title="ArsScientia: Seismic Warning System"
             tech={["IoT", "REST APIs", "React"]}
@@ -365,7 +375,6 @@ const App = () => {
             brochurePath="./docs/proje_4.pdf"
           />
 
-          {/* Proje 5: Erasmus/Liderlik */}
           <ProjectCard
             title="Global Leadership & Management"
             tech={["Project Mgmt", "Public Speaking", "Budgeting"]}
@@ -396,15 +405,15 @@ const App = () => {
       <Section id="contact" title="Get In Touch">
         <motion.div variants={fadeInUp} className="max-w-2xl mx-auto">
           <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 shadow-xl">
-            <div className="space-y-6">
+            {/* EMAILJS FORMU */}
+            <form ref={form} onSubmit={sendEmail} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-neutral-400 mb-2">Name</label>
                 <input
                   id="name"
                   type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
+                  name="user_name" // Template ile eşleşmesi için user_name
+                  required
                   className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-neutral-100 transition-all placeholder-neutral-600"
                   placeholder="Your name"
                 />
@@ -414,9 +423,8 @@ const App = () => {
                 <input
                   id="email"
                   type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
+                  name="user_email" // Template ile eşleşmesi için user_email
+                  required
                   className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-neutral-100 transition-all placeholder-neutral-600"
                   placeholder="your.email@example.com"
                 />
@@ -425,21 +433,21 @@ const App = () => {
                 <label htmlFor="message" className="block text-sm font-medium text-neutral-400 mb-2">Message</label>
                 <textarea
                   id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleInputChange}
+                  name="message" // Template ile eşleşmesi için message
+                  required
                   rows={5}
                   className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-neutral-100 resize-none transition-all placeholder-neutral-600"
                   placeholder="Your message..."
                 ></textarea>
               </div>
               <button
-                onClick={handleSubmit}
+                type="submit"
                 className="w-full bg-amber-600 hover:bg-amber-700 text-white py-4 rounded-lg font-semibold transition-all shadow-lg shadow-amber-600/20 active:scale-[0.98]"
               >
                 Send Message
               </button>
-            </div>
+            </form>
+
             <div className="mt-10 pt-8 border-t border-neutral-800">
               <p className="text-center text-neutral-500 mb-6 text-sm">Or reach out directly:</p>
               <a
@@ -520,7 +528,6 @@ const Section = ({ id, title, children }) => {
 };
 
 const ExperienceCard = ({ icon, iconColor, title, subtitle, location, period, description, type }) => {
-  // Etiket renklerini ayarlayalım
   const typeColors = {
     "Internship": "bg-blue-900/30 text-blue-400 border-blue-800",
     "Achievement": "bg-amber-900/30 text-amber-500 border-amber-800",
@@ -547,7 +554,6 @@ const ExperienceCard = ({ icon, iconColor, title, subtitle, location, period, de
               <h3 className="text-xl font-bold text-neutral-100">{title}</h3>
               <p className="text-amber-500 font-medium mb-1">{subtitle}</p>
             </div>
-            {/* TÜR ETİKETİ (Burada ne olduğu yazacak) */}
             <span className={`hidden sm:inline-block px-3 py-1 rounded-full text-xs font-mono border ${typeColors[type] || "bg-neutral-800 border-neutral-700"}`}>
               {type}
             </span>
